@@ -19,7 +19,7 @@ class Bird(pg.sprite.Sprite):
         super().__init__()
 
         img = pg.image.load(f"fig/{num}.png")
-        self.image = pg.transform.rotozoom(img, 0, 2.0)
+        self.image = pg.transform.rotozoom(img, 0, 1.0)
         self.rect = self.image.get_rect()
         self.rect.center = xy
 
@@ -93,7 +93,7 @@ def create_stage():
     target_img = pg.transform.rotozoom(
         pg.image.load(f"fig/{target_bird.bird_id}.png"),
         0,
-        1.0
+        2.0
     )
 
     return birds, target_bird, target_img
@@ -166,10 +166,13 @@ def main():
         # 背景
         screen.blit(bg_img, (0, 0))
 
+        # 鳥描画
+        birds.draw(screen)
+
         # ターゲット表示
         screen.blit(target_img, (10, 10))
 
-        pg.draw.rect(screen, (255, 0, 0), (5, 5, 100, 100), 3)
+        pg.draw.rect(screen, (255, 0, 0), (5, 5, 110, 110), 3)
 
         # タイマー表示
         timer_text = font.render(
@@ -187,10 +190,9 @@ def main():
             (255, 255, 0)
         )
 
-        screen.blit(stage_text, (20, 120))
+        screen.blit(stage_text, (300, 20))
 
-        # 鳥描画
-        birds.draw(screen)
+        
 
         # CLEAR表示
         if game_clear:
