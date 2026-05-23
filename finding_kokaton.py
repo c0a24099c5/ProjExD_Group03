@@ -21,7 +21,7 @@ class Bird(pg.sprite.Sprite):
         super().__init__()
         # figフォルダ内の0.png~9.pngを読み込む想定
         img = pg.image.load(f"fig/{num}.png")
-        self.image = pg.transform.rotozoom(img, 0, 2.0)
+        self.image = pg.transform.rotozoom(img, 0, 1.0)
         self.rect = self.image.get_rect()
         self.rect.center = xy
         self.bird_id = num  # 正誤判定用のID
@@ -42,7 +42,36 @@ class Bird(pg.sprite.Sprite):
             self.vx *= -1
         if self.rect.top < 0 or self.rect.bottom > HEIGHT:
             self.vy *= -1
-                
+
+class level_up(pg.sprite.Sprite):
+    """
+    難易度の上昇に関するクラス
+    """
+    def __init__(self):
+        super().__init__()
+        self.font = pg.font.Font(None, 50)
+        self.color = (0, 0, 255)#青色のフォント
+        self.value = 1
+        self.image = self.font.render(f"difficulty: {self.value}", True, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = (100, HEIGHT - 50)
+    def update(self, brds):
+        """
+        難易度の表示の変更、速度を上昇させる
+        引数:それぞれの鳥画像をforで回すためのbirdグループ
+        """
+        self.value += 1
+        self.image = self.font.render(f"difficulty: {self.value}", True, self.color)
+        for b in brds:
+            b.vx *= 1.2#速度を1.2倍する
+            b.vy *= 1.2
+    def draw(self, screen):
+        """
+        更新とは別にblitを行う
+        引数:blitのためのscreen
+        """
+        screen.blit(self.image, self.rect)
+
 def main():
     pg.display.set_caption("正しいこうかとんを探せ！！")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -51,7 +80,8 @@ def main():
     birds = pg.sprite.Group()
     img_nums = list(range(10)) 
     random.shuffle(img_nums) # 画像をランダムに
-    
+    lvup = level_up()
+
     positions = []
     for _ in range(9):
     # 画面の端すぎない範囲(100〜WIDTH-100など)でランダムに決定
@@ -59,9 +89,6 @@ def main():
         y = random.randint(100, HEIGHT - 100)
         positions.append((x, y))
 
-    for i in range(9):
-        bird = Bird(img_nums[i], positions[i])
-        birds.add(bird)
     for i in range(9):
         bird = Bird(img_nums[i], positions[i])
         birds.add(bird)
@@ -82,6 +109,7 @@ def main():
                     if bird.rect.collidepoint(event.pos):
                         if bird.bird_id == target_bird.bird_id:
                             print("正解！")
+                            lvup.update(birds) 
                         else:
                             print("残念...")
 
@@ -93,6 +121,7 @@ def main():
         pg.draw.rect(screen, (255, 0, 0), [5, 5, 100, 100], 3) # 枠線
         
         birds.draw(screen)
+        lvup.draw(screen) 
         pg.display.update()
         clock.tick(60)
 
