@@ -46,6 +46,10 @@ class Bird(pg.sprite.Sprite):
             self.vy *= -1
 
 def Start(screen):
+
+    """
+    スタート画面を表示する
+    """ 
     font_nihongo = "C:/Windows/Fonts/msgothic.ttc"
     font_title = pg.font.Font(font_nihongo, 60)
     font_msg = pg.font.Font(font_nihongo, 40)
