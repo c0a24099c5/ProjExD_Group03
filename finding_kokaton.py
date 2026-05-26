@@ -15,7 +15,7 @@ class Bird(pg.sprite.Sprite):
     こうかとんクラス
     """
 
-    def __init__(self, num: int, xy: tuple[int, int]):
+    def __init__(self, num: int, xy: tuple[int, int], speed):
         super().__init__()
         # figフォルダ内の0.png~9.pngを読み込む
         img = pg.image.load(f"fig/{num}.png")
@@ -25,8 +25,8 @@ class Bird(pg.sprite.Sprite):
         self.bird_id = num  # 正誤判定用の画像番号
 
         # 移動速度
-        self.vx = random.choice([-3, -2, 2, 3])
-        self.vy = random.choice([-3, -2, 2, 3])
+        self.vx = random.choice([-3, -2, 2, 3]) * speed
+        self.vy = random.choice([-3, -2, 2, 3]) * speed
 
     def update(self):
         self.rect.move_ip(self.vx, self.vy)
@@ -36,6 +36,27 @@ class Bird(pg.sprite.Sprite):
             self.vx *= -1  # 画面の左右の端に触れたら速度を反転
         if self.rect.top < 0 or self.rect.bottom > HEIGHT:
             self.vy *= -1  # 画面の上下の端に触れたら速度を反転
+            
+class level_up(pg.sprite.Sprite):
+    """
+    難易度の上昇に関するクラス
+    """
+    def __init__(self):
+        super().__init__()
+        self.font = pg.font.Font(None, 50)
+        self.color = (0, 0, 255)#青色のフォント
+        self.value = 1
+        self.image = self.font.render(f"difficulty: {self.value}", True, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = (100, HEIGHT - 50)
+   
+    def draw(self, screen):
+        """
+        更新とは別にblitを行う
+        引数:blitのためのscreen
+        """
+        screen.blit(self.image, self.rect)
+
 
 class BGM():
     """
@@ -47,7 +68,7 @@ class BGM():
         pg.mixer.music.play(-1)
             
 
-def reset_stage(birds: pg.sprite.Group):
+def reset_stage(birds: pg.sprite.Group, difficulty):
     """
     担当機能：既存のこうかとんたちを消して、新しい配置とターゲットを生成する
     """
@@ -80,7 +101,7 @@ def reset_stage(birds: pg.sprite.Group):
                 break
 
     for i in range(9):
-        birds.add(Bird(img_nums[i], positions[i]))
+        birds.add(Bird(img_nums[i], positions[i], difficulty))
 
     target_bird = random.choice(birds.sprites())
 
@@ -169,35 +190,21 @@ def main():
 
     # 鳥グループ
     birds = pg.sprite.Group()
+    birds = pg.sprite.Group()
+    img_nums = list(range(10)) 
+    random.shuffle(img_nums) # 画像をランダムに
+    lvup = level_up()
 
-    # 画像番号をランダムに9個選択
-    img_nums = random.sample(range(10), 9)
-
-    # ランダム座標
     positions = []
-
     for _ in range(9):
+    # 画面の端すぎない範囲(100〜WIDTH-100など)でランダムに決定
         x = random.randint(100, WIDTH - 100)
         y = random.randint(100, HEIGHT - 100)
         positions.append((x, y))
 
-    # 鳥生成
-    for i in range(9):
-        bird = Bird(img_nums[i], positions[i])
-        birds.add(bird)
 
-    # 正解の鳥をランダム決定
-    target_bird = random.choice(birds.sprites())
 
-    # 左上に表示する画像
-    target_img = pg.transform.rotozoom(
-        pg.image.load(f"fig/{target_bird.bird_id}.png"),
-        0,
-        1.0
-    )
-    # 基本機能：9種類の鳥を生成してグループに登録
-    birds = pg.sprite.Group()
-    target_bird, target_img = reset_stage(birds)  # 初回ステージ生成
+    target_bird, target_img = reset_stage(birds, 1)  # 初回ステージ生成
 
     mode = "PLAYING"  # 最初はプレイ中モード
     stage_count = 1   # 何問目かのカウント
@@ -255,7 +262,7 @@ def main():
             birds.draw(screen)  # すべてのこうかとんを描画
             target_img = pg.transform.rotozoom(pg.image.load(f"fig/{target_bird.bird_id}.png"), 10, 1.5)  # ターゲットの見本を左上に表示
             screen.blit(target_img, [10, 10])
-            pg.draw.rect(screen, (255, 0, 0), [5, 5, 120, 120], 3) # # 正解のこうかとんを囲む赤い枠線
+            pg.draw.rect(screen, (255, 0, 0), [5, 5, 120, 120], 3)  # 正解のこうかとんを囲む赤い枠線
 
         # タイマー表示
         timer_text = font.render(
@@ -311,7 +318,10 @@ def main():
             # 次ステージ開始時刻
             start_time = pg.time.get_ticks()
 
-            target_bird, target_img = reset_stage(birds)
+            lvup.value += 1
+            lvup.image = lvup.font.render(f"difficulty: {lvup.value}", True, lvup.color)
+
+            target_bird, target_img = reset_stage(birds, lvup.value)
 
             game_clear = False
 
@@ -323,6 +333,8 @@ def main():
 
             return
         
+        birds.draw(screen)
+        lvup.draw(screen) 
         pg.display.update()
         clock.tick(60)
 
