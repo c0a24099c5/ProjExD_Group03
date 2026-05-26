@@ -42,11 +42,22 @@ class Bird(pg.sprite.Sprite):
             self.vx *= -1
         if self.rect.top < 0 or self.rect.bottom > HEIGHT:
             self.vy *= -1
+
+class BGM():
+    """
+    BGMを流す関数。
+    """
+    def __init__(self):
+        pg.mixer.init()
+        pg.mixer.music.load("sound/house_lo.wav")
+        pg.mixer.music.play(-1)
                 
 def main():
     pg.display.set_caption("正しいこうかとんを探せ！！")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")
+
+    BGM()
     # 基本機能：9種類の鳥を生成してグループに登録
     birds = pg.sprite.Group()
     img_nums = list(range(10)) 
